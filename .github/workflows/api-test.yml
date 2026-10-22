@@ -1,13 +1,12 @@
-name: ReqRes API Tests
+name: API Testing CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
-  api-test:
+  test-api:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,18 +16,23 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
 
-      - name: Install Newman
-        run: npm install -g newman newman-reporter-htmlextra
+      - name: Install Newman & Reporter
+        run: npm install newman newman-reporter-htmlextra
 
-      - name: Run API tests with CSV
-        run: newman run "2474802010343_DangVoThanhTai_ReqRes.postman_collection.json" -d users.csv
-        
-      - name: Upload HTML report
+      - name: Run Newman Tests
+        run: |
+          npx newman run ReqRes_Collection.json \
+            -e ReqRes_Environment.json \
+            -d users.csv \
+            --reporters cli,htmlextra \
+            --reporter-htmlextra-export report.html \
+            --suppress-exit-code
+
+      - name: Upload HTML Report Artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: api-test-report
           path: report.html
-          if-no-files-found: warn
