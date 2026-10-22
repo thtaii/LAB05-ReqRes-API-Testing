@@ -20,17 +20,17 @@ jobs:
           node-version: 20
 
       - name: Install Newman
-        run: |
-          npm install -g newman newman-reporter-htmlextra
+        run: npm install -g newman newman-reporter-htmlextra
 
       - name: Run API tests with CSV
         run: |
           newman run "2474802010343_DangVoThanhTai_ReqRes.postman_collection.json" \
-          -e "2474802010343_DangVoThanhTai_ReqRes_Env.postman_environment.json" \
-          --env-var "baseUrl=https://reqres.in" \
-          --env-var "apiKey=${{ secrets.REQRES_API_KEY }}" \
-          - d data.csv \
-          -r cli,htmlextra
+            -e "2474802010343_DangVoThanhTai_ReqRes_Env.postman_environment.json" \
+            --env-var "baseUrl=https://reqres.in" \
+            --env-var "apiKey=${{ secrets.REQRES_API_KEY }}" \
+            -d "data.csv" \
+            -r cli,htmlextra \
+            --reporter-htmlextra-export report.html
 
       - name: Upload HTML report
         if: always()
