@@ -1,0 +1,33 @@
+name: API Availability & Performance Monitor
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Test Endpoint Availability & SLA
+        run: |
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code} %{time_total}" "https://reqres.in/api/users?page=1")
+          HTTP_STATUS=$(echo $RESPONSE | cut -d' ' -f1)
+          RESPONSE_TIME_SEC=$(echo $RESPONSE | cut -d' ' -f2)
+          RESPONSE_TIME_MS=$(node -e "console.log(Math.round($RESPONSE_TIME_SEC * 1000))")
+
+          echo "HTTP Status Code: $HTTP_STATUS"
+          echo "Response Time: ${RESPONSE_TIME_MS} ms"
+
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "FAILED: Expected HTTP 200 but got $HTTP_STATUS"
+            exit 1
+          fi
+
+          if [ "$RESPONSE_TIME_MS" -gt 800 ]; then
+            echo "FAILED: Response time (${RESPONSE_TIME_MS}ms) exceeded SLA threshold (800ms)"
+            exit 1
+          fi
+
+          echo "SUCCESS: Endpoint is available and meeting SLA requirements."
